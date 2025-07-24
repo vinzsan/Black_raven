@@ -51,7 +51,7 @@ int main(){
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window *win = window->CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE);
     SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
-    SDL_Texture *text[10];
+    SDL_Texture *text[2];
     text[0] = window->CreateTextureSurf(render,"liminal.jpeg");
     text[1] = window->CreateTextureSurf(render,"waifu1.jpeg");
     int len = sizeof(text)/sizeof(text[0]);
