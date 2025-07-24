@@ -15,6 +15,7 @@ typedef struct{
 typedef struct{
     volatile int counter;
     volatile int flags_image;
+    volatile int flags_font;
     SDL_Window* (*CreateWindow)(const char *title,int width,int height,Uint32 flags);
     SDL_Renderer* (*CreateRender)(SDL_Window *win,int level,Uint32 flags);
     SDL_Texture* (*CreateTextureSurf)(SDL_Renderer *render,const char *name);
@@ -63,18 +64,25 @@ int main(){
     SDL_Window *win = window->CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
     SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
-    TTF_Font *font = TTF_OpenFont("0xProtoNerdFont-Regular.ttf",14);
-    if(!font){
-        perror("Error load font");
-        free(window);
-        return -1;
-    }
+    char *font_list[2] = {"0xProtoNerdFontPropo-Bold.ttf","0xProtoNerdFont-Regular.ttf"};
+    TTF_Font *font[2];
+    SDL_Surface *text_font[2];
     SDL_Color color = {0,0,0,0};
-    SDL_Surface *text_font = TTF_RenderText_Blended(font,"Click 'q' untuk keluar",color);
-    SDL_Texture *new_font = SDL_CreateTextureFromSurface(render,text_font);
+    Vector2 font_vector[2];
+    SDL_Texture *new_font[2];
+    int ttf_max = sizeof(font_list)/sizeof(font_list[0]);
+    for(int i = 0;i < ttf_max;i++){
+        font[i] = TTF_OpenFont(font_list[i],24);
+        text_font[i] = TTF_RenderText_Blended(font[i],"Click 'q' untuk keluar",color);
+        font_vector[i].x =  text_font[i]->w;
+        font_vector[i].y = text_font[i]->h;
+        new_font[i] = SDL_CreateTextureFromSurface(render,text_font[i]);
+    }
+    //SDL_Color color = {0,0,0,0};
+    //SDL_Surface *text_font = TTF_RenderText_Blended(font,"Click 'q' untuk keluar",color);
+    //SDL_Texture *new_font = SDL_CreateTextureFromSurface(render,text_font);
 
-    Vector2 font_vector = {.x = text_font->w,.y = text_font->h};
-    SDL_FreeSurface(text_font);
+    //Vector2 font_vector = {.x = text_font->w,.y = text_font->h};
     //SDL_RenderSetLogicalSize(render,800,600);
     char *image_array[2] = {"background.jpeg","background2.jpeg"};
     SDL_Texture *text[2];
@@ -90,11 +98,15 @@ int main(){
     for(int i = 0;i < len;i++){
         SDL_FreeSurface(surf[i]);
     }
+    for(int i = 0;i < ttf_max;i++){
+        SDL_FreeSurface(text_font[i]);
+    }
     //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
     
     //aalineRGBA(render,)
     window->counter = 1;
     window->flags_image = 1;
+    window->flags_font = 1;
     while(window->counter){
         SDL_Event e;
         while(SDL_PollEvent(&e)){
@@ -108,8 +120,24 @@ int main(){
             if(e.key.keysym.sym == SDLK_2){
                 window->flags_image = 2;
             }
+            if(e.key.keysym.sym == SDLK_w){
+                window->flags_font = 1;
+            }
+            if(e.key.keysym.sym == SDLK_e){
+                window->flags_font = 2;
+            }
         }
         SDL_RenderClear(render);
+        int width,height;
+        SDL_GetWindowSize(win,&width,&height);
+        SDL_Rect pollin[2];
+        for(int i = 0;i < ttf_max;i++){
+            Vector2 vector = {.x = (width - font_vector[i].x)/2,.y = (height - font_vector[i].y)/2};
+            SDL_Rect rectangle = {vector.x,vector.y,font_vector[i].x,font_vector[i].y};
+            pollin[i] = rectangle;
+            //SDL_RenderCopy(render,new_font,NULL,&rectangle);
+        }
+        //SDL_RenderClear(render);
         switch(window->flags_image){
             case 1:
                 SDL_RenderCopy(render,text[0],NULL,NULL);
@@ -120,13 +148,19 @@ int main(){
             default:
             break;
         }
+        switch(window->flags_font){
+            case 1:
+            SDL_RenderCopy(render,new_font[0],NULL,&pollin[0]);
+            break;
+            case 2:
+            SDL_RenderCopy(render,new_font[1],NULL,&pollin[1]);
+            break;
+            default:
+            break;
+        }
         //SDL_Rect rectangle = {100,100,0,0};
-        int width,height;
-        SDL_GetWindowSize(win,&width,&height);
-        Vector2 vector = {.x = (width - font_vector.x)/2,.y = (height - font_vector.y)/2};
-        SDL_Rect rectangle = {vector.x,vector.y,font_vector.x,font_vector.y};
         //SDL_QueryTexture(new_font,NULL,NULL,&vector.x,&vector.y);
-        SDL_RenderCopy(render,new_font,NULL,&rectangle);
+        //SDL_RenderCopy(render,new_font,NULL,&pollin);
         SDL_RenderPresent(render);
         SDL_Delay(1);
     }
@@ -134,8 +168,12 @@ int main(){
     SDL_DestroyRenderer(render);
     for(int i = 0;i < len;i++){
         SDL_DestroyTexture(text[i]);
+        //TTF_CloseFont(font[i]);
     }
-    TTF_CloseFont(font);
+    for(int i = 0;i < ttf_max;i++){
+        SDL_DestroyTexture(new_font[i]);
+        TTF_CloseFont(font[i]);
+    }
     TTF_Quit();
     free(window);
     return 0;
