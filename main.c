@@ -51,10 +51,14 @@ int main(){
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window *win = window->CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE);
     SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
+    char *image_array[2] = {"liminal.jpeg","waifu1.jpeg"};
     SDL_Texture *text[2];
-    text[0] = window->CreateTextureSurf(render,"liminal.jpeg");
-    text[1] = window->CreateTextureSurf(render,"waifu1.jpeg");
+    
     int len = sizeof(text)/sizeof(text[0]);
+    
+    for(int i = 0;i < len;i++){
+        text[i] = window->CreateTextureSurf(render,image_array[i]);
+    }
     window->counter = 1;
     window->flags_image = 1;
     while(window->counter){
