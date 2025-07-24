@@ -4,7 +4,9 @@
 #include <pthread.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
+#include <curl/curl.h>
 
 typedef struct{
     int x,y;
@@ -44,6 +46,8 @@ SDL_Texture *create_texture_surf(SDL_Renderer *render,const char *name){
     return text;
 }
 
+
+
 //static Window window = {create_win,rendering};
 
 int main(){
@@ -55,11 +59,24 @@ int main(){
     // Main program
     SDL_Init(SDL_INIT_VIDEO);
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
+    TTF_Init();
     SDL_Window *win = window->CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"2");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
     SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
+    TTF_Font *font = TTF_OpenFont("0xProtoNerdFont-Regular.ttf",14);
+    if(!font){
+        perror("Error load font");
+        free(window);
+        return -1;
+    }
+    SDL_Color color = {0,0,0,0};
+    SDL_Surface *text_font = TTF_RenderText_Blended(font,"Click 'q' untuk keluar",color);
+    SDL_Texture *new_font = SDL_CreateTextureFromSurface(render,text_font);
+
+    Vector2 font_vector = {.x = text_font->w,.y = text_font->h};
+    SDL_FreeSurface(text_font);
     //SDL_RenderSetLogicalSize(render,800,600);
-    char *image_array[2] = {"background.jpeg","waifu1.jpeg"};
+    char *image_array[2] = {"background.jpeg","background2.jpeg"};
     SDL_Texture *text[2];
     
     int len = sizeof(text)/sizeof(text[0]);
@@ -68,7 +85,7 @@ int main(){
     for(int i = 0;i < len;i++){
         surf[i] = IMG_Load(image_array[i]);
         text[i] = SDL_CreateTextureFromSurface(render,surf[i]);
-        SDL_RenderSetLogicalSize(render,surf[i]->w,surf[i]->h);
+        //SDL_RenderSetLogicalSize(render,surf[i]->w,surf[i]->h);
     }
     for(int i = 0;i < len;i++){
         SDL_FreeSurface(surf[i]);
@@ -103,13 +120,23 @@ int main(){
             default:
             break;
         }
+        //SDL_Rect rectangle = {100,100,0,0};
+        int width,height;
+        SDL_GetWindowSize(win,&width,&height);
+        Vector2 vector = {.x = (width - font_vector.x)/2,.y = (height - font_vector.y)/2};
+        SDL_Rect rectangle = {vector.x,vector.y,font_vector.x,font_vector.y};
+        //SDL_QueryTexture(new_font,NULL,NULL,&vector.x,&vector.y);
+        SDL_RenderCopy(render,new_font,NULL,&rectangle);
         SDL_RenderPresent(render);
+        SDL_Delay(1);
     }
     SDL_DestroyWindow(win);
     SDL_DestroyRenderer(render);
     for(int i = 0;i < len;i++){
         SDL_DestroyTexture(text[i]);
     }
+    TTF_CloseFont(font);
+    TTF_Quit();
     free(window);
     return 0;
 }
