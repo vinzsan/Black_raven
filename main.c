@@ -68,7 +68,7 @@ int main(){
     for(int i = 0;i < len;i++){
         surf[i] = IMG_Load(image_array[i]);
         text[i] = SDL_CreateTextureFromSurface(render,surf[i]);
-        SDL_RenderSetLogicalSize(render,surf[i]->w,surf[i]->h);;
+        SDL_RenderSetLogicalSize(render,surf[i]->w,surf[i]->h);
     }
     for(int i = 0;i < len;i++){
         SDL_FreeSurface(surf[i]);
