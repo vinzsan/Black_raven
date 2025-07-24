@@ -4,6 +4,11 @@
 #include <pthread.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
+
+typedef struct{
+    int x,y;
+} Vector2;
 
 typedef struct{
     volatile int counter;
@@ -46,19 +51,31 @@ int main(){
     Window *window = malloc(sizeof(Window));
     window->CreateWindow = create_win;
     window->CreateRender = rendering;
-    window->CreateTextureSurf = create_texture_surf;
+    //window->CreateTextureSurf = create_texture_surf;
     // Main program
     SDL_Init(SDL_INIT_VIDEO);
+    IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     SDL_Window *win = window->CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"2");
     SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
-    char *image_array[2] = {"liminal.jpeg","waifu1.jpeg"};
+    //SDL_RenderSetLogicalSize(render,800,600);
+    char *image_array[2] = {"background.jpeg","waifu1.jpeg"};
     SDL_Texture *text[2];
     
     int len = sizeof(text)/sizeof(text[0]);
+    SDL_Surface *surf[len];
     
     for(int i = 0;i < len;i++){
-        text[i] = window->CreateTextureSurf(render,image_array[i]);
+        surf[i] = IMG_Load(image_array[i]);
+        text[i] = SDL_CreateTextureFromSurface(render,surf[i]);
+        SDL_RenderSetLogicalSize(render,surf[i]->w,surf[i]->h);;
     }
+    for(int i = 0;i < len;i++){
+        SDL_FreeSurface(surf[i]);
+    }
+    //SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
+    
+    //aalineRGBA(render,)
     window->counter = 1;
     window->flags_image = 1;
     while(window->counter){
