@@ -19,6 +19,11 @@ typedef struct{
     char *data;
     size_t size;
 } Memory;
+
+typedef struct {
+    CURL *curl;
+    CURLcode *res;
+} Curl;
 //init class and object
 typedef struct{
     volatile int counter;
@@ -82,41 +87,17 @@ void update_text(SDL_Renderer *renderer, TTF_Font *font, SDL_Color color, const 
     *texture = SDL_CreateTextureFromSurface(renderer, *surface);
 }
 
-//void *multithread(void *args){}
-
-
-//static Window window = {create_win,rendering};
-
-int main(){
-    // Init
-    Window *window = malloc(sizeof(Window));
-    window->CreateWindow = create_win;
-    window->CreateRender = rendering;
-    //window->CreateTextureSurf = create_texture_surf;
-    // Main program
-    SDL_Init(SDL_INIT_VIDEO);
-    IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
-    TTF_Init();
+void *multithread(){
     CURL *curl = curl_easy_init();
     CURLcode res;
-    SDL_Window *win = window->CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
-    SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
-    //char *font_list = "0xProtoNerdFontPropo-Bold.ttf";
-    TTF_Font *font[4];
-    SDL_Surface *text_font[4];
-    SDL_Color color = {0,0,0,0};
-    Vector2 font_vector[4];
-    SDL_Texture *new_font[4];
-
-    //char *buff = calloc(MAX_BUFFER,sizeof(char));
+    //free(args);
     Memory mem = {
         .data = calloc(MAX_BUFFER,sizeof(char)),
         .size = 0
     };
     if(mem.data == NULL){
         perror("Error tidak dapat memuat resource");
-        return -1;
+        return NULL;
     }
 
     if(curl){
@@ -141,6 +122,37 @@ int main(){
     fwrite(mem.data,1,mem.size,file);
     curl_easy_cleanup(curl);
     free(mem.data);
+    return NULL;
+}
+
+
+//static Window window = {create_win,rendering};
+
+int main(){
+    // Init
+    Window *window = malloc(sizeof(Window));
+    window->CreateWindow = create_win;
+    window->CreateRender = rendering;
+    //window->CreateTextureSurf = create_texture_surf;
+    // Main program
+    SDL_Init(SDL_INIT_VIDEO);
+    IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
+    TTF_Init();
+    pthread_t tid;
+    CURL *curl = curl_easy_init();
+    CURLcode res;
+    SDL_Window *win = window->CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
+    SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
+    //char *font_list = "0xProtoNerdFontPropo-Bold.ttf";
+    TTF_Font *font[4];
+    SDL_Surface *text_font[4];
+    SDL_Color color = {0,0,0,0};
+    Vector2 font_vector[4];
+    SDL_Texture *new_font[4];
+    pthread_create(&tid,NULL,multithread,NULL);
+
+    //char *buff = calloc(MAX_BUFFER,sizeof(char));
 
     //int ttf_max = sizeof(font_list)/sizeof(font_list[0]);
     char *str[4] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," "};
@@ -305,6 +317,7 @@ int main(){
         SDL_DestroyTexture(new_font[i]);
         TTF_CloseFont(font[i]);
     }
+    pthread_join(tid,NULL);
     TTF_Quit();
     free(window);
     return 0;
