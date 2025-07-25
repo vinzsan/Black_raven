@@ -7,10 +7,18 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <curl/curl.h>
+#include <fcntl.h>
+
+#define MAX_BUFFER 4096
 
 typedef struct{
     int x,y;
 } Vector2;
+
+typedef struct{
+    char *data;
+    size_t size;
+} Memory;
 //init class and object
 typedef struct{
     volatile int counter;
@@ -48,6 +56,23 @@ SDL_Texture *create_texture_surf(SDL_Renderer *render,const char *name){
     return text;
 }
 
+size_t write_data(void *ptr, size_t size, size_t nmemb, void *user) {
+    size_t total_max = size * nmemb;
+    Memory *mem = (Memory *)user;
+
+    // Cegah buffer overflow
+    if(mem->size + total_max >= MAX_BUFFER - 1)
+        total_max = MAX_BUFFER - mem->size - 1;
+
+    // SALIN data dari ptr ke buffer kamu
+    memcpy(mem->data + mem->size, ptr, total_max);
+
+    mem->size += total_max;
+    mem->data[mem->size] = '\0'; // pastikan null-terminated
+    return total_max; // jumlah byte yang disalin
+}
+
+
 void update_text(SDL_Renderer *renderer, TTF_Font *font, SDL_Color color, const char *new_str,
                  SDL_Surface **surface, SDL_Texture **texture) {
     if (*surface) SDL_FreeSurface(*surface);
@@ -56,6 +81,8 @@ void update_text(SDL_Renderer *renderer, TTF_Font *font, SDL_Color color, const 
     *surface = TTF_RenderText_Blended(font, new_str, color);
     *texture = SDL_CreateTextureFromSurface(renderer, *surface);
 }
+
+//void *multithread(void *args){}
 
 
 //static Window window = {create_win,rendering};
@@ -70,6 +97,8 @@ int main(){
     SDL_Init(SDL_INIT_VIDEO);
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
+    CURL *curl = curl_easy_init();
+    CURLcode res;
     SDL_Window *win = window->CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
     SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
@@ -79,6 +108,39 @@ int main(){
     SDL_Color color = {0,0,0,0};
     Vector2 font_vector[4];
     SDL_Texture *new_font[4];
+
+    //char *buff = calloc(MAX_BUFFER,sizeof(char));
+    Memory mem = {
+        .data = calloc(MAX_BUFFER,sizeof(char)),
+        .size = 0
+    };
+    if(mem.data == NULL){
+        perror("Error tidak dapat memuat resource");
+        return -1;
+    }
+
+    if(curl){
+        curl_easy_setopt(curl,CURLOPT_URL,"https://httpbin.org");
+        curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"accept : application/json");
+        curl_easy_setopt(curl,CURLOPT_ACCEPT_ENCODING,"");
+        curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data);
+        curl_easy_setopt(curl,CURLOPT_WRITEDATA,&mem);
+        res = curl_easy_perform(curl);  
+    }
+    else{
+        fprintf(stderr,"Error request get method",curl_easy_strerror(res));
+    }
+    //write(STDOUT_FILENO,mem.data,mem.size);
+    FILE *file = fopen("log.txt","w");
+    if(!file){
+        //write(fd,mem.data,mem.size);
+        perror("Error file isnt exist");
+        fwrite(mem.data,mem.size,MAX_BUFFER,file);
+    }
+    //write(fd,mem.data,mem.size);
+    fwrite(mem.data,1,mem.size,file);
+    curl_easy_cleanup(curl);
+    free(mem.data);
 
     //int ttf_max = sizeof(font_list)/sizeof(font_list[0]);
     char *str[4] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," "};
