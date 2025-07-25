@@ -74,14 +74,14 @@ int main(){
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
     SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
     //char *font_list = "0xProtoNerdFontPropo-Bold.ttf";
-    TTF_Font *font[2];
-    SDL_Surface *text_font[2];
+    TTF_Font *font[4];
+    SDL_Surface *text_font[4];
     SDL_Color color = {0,0,0,0};
-    Vector2 font_vector[2];
-    SDL_Texture *new_font[2];
+    Vector2 font_vector[4];
+    SDL_Texture *new_font[4];
 
     //int ttf_max = sizeof(font_list)/sizeof(font_list[0]);
-    char *str[2] = {"Click 'q' untuk keluar","ESC : Debug mode"};
+    char *str[4] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," "};
     int ttf_max = sizeof(str)/sizeof(str[0]);
 
     for(int i = 0;i < ttf_max;i++){
@@ -92,7 +92,7 @@ int main(){
         new_font[i] = SDL_CreateTextureFromSurface(render,text_font[i]);
     }
 
-    int size = 3;
+    //int size = 3;
     char *image_array[3] = {"background.jpeg","background2.jpeg","waifu1.jpeg"};
     SDL_Texture *text[3];
     
@@ -148,11 +148,19 @@ int main(){
             if(e.key.keysym.sym == SDLK_r){
                 dst.h = buffer.h;
                 dst.w = buffer.w;
+                window->flags_font = 4;
             }
             if(e.key.keysym.sym == SDLK_u){
                 speed = 5;
             }
+            if(e.key.keysym.sym == SDLK_4){
+                window->flags_font = 3;
+            }
+            if(e.key.keysym.sym == SDLK_h){
+                window->flags_font = 4;
+            }
         }
+
         int win_w,win_h;
         SDL_GetWindowSize(win,&win_w,&win_h);
         if(keyState[SDL_SCANCODE_UP]) dst.y -= speed;
@@ -187,7 +195,7 @@ int main(){
         SDL_RenderClear(render);
         int width,height;
         SDL_GetWindowSize(win,&width,&height);
-        SDL_Rect pollin[2];
+        SDL_Rect pollin[4];
         for(int i = 0;i < ttf_max;i++){
             Vector2 vector = {.x = (width - font_vector[i].x)/2,.y = (height - font_vector[i].y)/2};
             SDL_Rect rectangle = {vector.x,vector.y,font_vector[i].x,font_vector[i].y};
@@ -212,6 +220,12 @@ int main(){
                 break;
             case 2:
                 SDL_RenderCopy(render,new_font[1],NULL,&pollin[1]);
+                break;
+            case 3:
+                SDL_RenderCopy(render,new_font[2],NULL,&pollin[2]);
+                break;
+            case 4:
+                SDL_RenderCopy(render,new_font[3],NULL,&pollin[3]);
                 break;
             default:
             break;
