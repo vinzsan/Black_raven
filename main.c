@@ -30,6 +30,7 @@ typedef struct{
     volatile int flags_image;
     volatile int flags_font;
     volatile int change_str;
+    volatile int alpha;
     SDL_Window* (*CreateWindow)(const char *title,int width,int height,Uint32 flags);
     SDL_Renderer* (*CreateRender)(SDL_Window *win,int level,Uint32 flags);
     SDL_Texture* (*CreateTextureSurf)(SDL_Renderer *render,const char *name);
@@ -164,6 +165,7 @@ int main(){
         font_vector[i].x =  text_font[i]->w;
         font_vector[i].y = text_font[i]->h;
         new_font[i] = SDL_CreateTextureFromSurface(render,text_font[i]);
+        SDL_SetTextureAlphaMod(new_font[i],SDL_BLENDMODE_BLEND);
     }
 
     //int size = 3;
@@ -176,6 +178,7 @@ int main(){
     for(int i = 0;i < len;i++){
         surf[i] = IMG_Load(image_array[i]);
         text[i] = SDL_CreateTextureFromSurface(render,surf[i]);
+        SDL_SetTextureBlendMode(text[i],SDL_BLENDMODE_BLEND);
     }
     for(int i = 0;i < len;i++){
         SDL_FreeSurface(surf[i]);
@@ -196,6 +199,7 @@ int main(){
     window->flags_image = 1;
     window->flags_font = 1;
     window->change_str = 1;
+    window->alpha = 255;
     SDL_Event e;
     while(window->counter){
         const Uint8 *keyState = SDL_GetKeyboardState(NULL);
@@ -253,6 +257,14 @@ int main(){
         if(keyState[SDL_SCANCODE_S]){
             speed += 1;
         }
+        if(keyState[SDL_SCANCODE_8]){
+            if(window->alpha <= 255){
+                window->alpha += 5;
+            }
+        }
+        if(keyState[SDL_SCANCODE_9]){
+            window->alpha -= 5;
+        }
         if(dst.x < 0) dst.x = 0;
         if(dst.x > win_w - dst.w) dst.x = win_w - dst.w;
         if(dst.y < 0) dst.y = 0;
@@ -265,8 +277,11 @@ int main(){
             dst.y = win_h - dst.h;
             velocity = 0;
         }
+        if (window->alpha > 255) window->alpha = 255;
+        if (window->alpha < 0) window->alpha = 0;
 
         SDL_RenderClear(render);
+        SDL_SetRenderDrawColor(render,0,0,0,255);
         int width,height;
         SDL_GetWindowSize(win,&width,&height);
         SDL_Rect pollin[4];
@@ -277,6 +292,13 @@ int main(){
         }
         SDL_RenderSetLogicalSize(render,width,height);
         //SDL_RenderClear(render);
+        //for(int i = 0;i < sizeof(text)/sizeof(text[0]);i++){
+        //    SDL_SetTextureAlphaMod(text[i],SDL_BLENDMODE_BLEND);
+        for(int i = 0;i < sizeof(text)/sizeof(text[0]);i++){
+            SDL_SetTextureAlphaMod(text[i],window->alpha);
+            SDL_SetTextureAlphaMod(new_font[i],window->alpha);
+        }
+        //}
         switch(window->flags_image){
             case 1:
                 SDL_RenderCopy(render,text[0],NULL,NULL);
