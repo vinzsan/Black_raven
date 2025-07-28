@@ -90,8 +90,8 @@ void *multithread(){
     }
 
     if(curl){
-        curl_easy_setopt(curl,CURLOPT_URL,"https://pkl.smkn1rejotangan.sch.id/public/login");
-        curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"usernam=0082454908&password=1234");
+        curl_easy_setopt(curl,CURLOPT_URL,"http://voltraz.xyz");
+        curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"accept : application/json");
         curl_easy_setopt(curl,CURLOPT_ACCEPT_ENCODING,"");
         curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data);
         curl_easy_setopt(curl,CURLOPT_WRITEDATA,&mem);
@@ -101,7 +101,7 @@ void *multithread(){
         fprintf(stderr,"Error request get method",curl_easy_strerror(res));
     }
     //write(STDOUT_FILENO,mem.data,mem.size);
-    FILE *file = fopen("log.txt","w");
+    FILE *file = fopen("log.json","w");
     if(!file){
         //write(fd,mem.data,mem.size);
         perror("Error file isnt exist");
@@ -149,6 +149,7 @@ int main(){
 
     //int size = 3;
     char *image_array[3] = {"background.jpeg","background2.jpeg","waifu1.jpeg"};
+    char
     SDL_Texture *text[3];
     
     int len = sizeof(text)/sizeof(text[0]);
