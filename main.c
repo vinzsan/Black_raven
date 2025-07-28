@@ -24,7 +24,7 @@ typedef struct {
     CURL *curl;
     CURLcode *res;
 } Curl;
-//init class and object
+
 typedef struct{
     volatile int counter;
     volatile int flags_image;
@@ -66,26 +66,14 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, void *user) {
     size_t total_max = size * nmemb;
     Memory *mem = (Memory *)user;
 
-    // Cegah buffer overflow
     if(mem->size + total_max >= MAX_BUFFER - 1)
         total_max = MAX_BUFFER - mem->size - 1;
 
-    // SALIN data dari ptr ke buffer kamu
     memcpy(mem->data + mem->size, ptr, total_max);
 
     mem->size += total_max;
-    mem->data[mem->size] = '\0'; // pastikan null-terminated
-    return total_max; // jumlah byte yang disalin
-}
-
-
-void update_text(SDL_Renderer *renderer, TTF_Font *font, SDL_Color color, const char *new_str,
-                 SDL_Surface **surface, SDL_Texture **texture) {
-    if (*surface) SDL_FreeSurface(*surface);
-    if (*texture) SDL_DestroyTexture(*texture);
-    
-    *surface = TTF_RenderText_Blended(font, new_str, color);
-    *texture = SDL_CreateTextureFromSurface(renderer, *surface);
+    mem->data[mem->size] = '\0';
+    return total_max;
 }
 
 void *multithread(){
@@ -102,8 +90,8 @@ void *multithread(){
     }
 
     if(curl){
-        curl_easy_setopt(curl,CURLOPT_URL,"https://httpbin.org");
-        curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"accept : application/json");
+        curl_easy_setopt(curl,CURLOPT_URL,"https://pkl.smkn1rejotangan.sch.id/public/login");
+        curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"usernam=0082454908&password=1234");
         curl_easy_setopt(curl,CURLOPT_ACCEPT_ENCODING,"");
         curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data);
         curl_easy_setopt(curl,CURLOPT_WRITEDATA,&mem);
@@ -126,16 +114,11 @@ void *multithread(){
     return NULL;
 }
 
-
-//static Window window = {create_win,rendering};
-
 int main(){
     // Init
     Window *window = malloc(sizeof(Window));
     window->CreateWindow = create_win;
     window->CreateRender = rendering;
-    //window->CreateTextureSurf = create_texture_surf;
-    // Main program
     SDL_Init(SDL_INIT_VIDEO);
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
@@ -152,10 +135,6 @@ int main(){
     Vector2 font_vector[4];
     SDL_Texture *new_font[4];
     pthread_create(&tid,NULL,multithread,NULL);
-
-    //char *buff = calloc(MAX_BUFFER,sizeof(char));
-
-    //int ttf_max = sizeof(font_list)/sizeof(font_list[0]);
     char *str[4] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," "};
     int ttf_max = sizeof(str)/sizeof(str[0]);
 
@@ -241,7 +220,7 @@ int main(){
 
         int win_w,win_h;
         SDL_GetWindowSize(win,&win_w,&win_h);
-        if(keyState[SDL_SCANCODE_UP]) dst.y -= speed;
+        //if(keyState[SDL_SCANCODE_UP]) dst.y -= speed;
         if(keyState[SDL_SCANCODE_DOWN]) dst.y += speed;
         if(keyState[SDL_SCANCODE_RIGHT]) dst.x += speed;
         if(keyState[SDL_SCANCODE_LEFT]) dst.x -= speed;
@@ -291,14 +270,10 @@ int main(){
             pollin[i] = rectangle;
         }
         SDL_RenderSetLogicalSize(render,width,height);
-        //SDL_RenderClear(render);
-        //for(int i = 0;i < sizeof(text)/sizeof(text[0]);i++){
-        //    SDL_SetTextureAlphaMod(text[i],SDL_BLENDMODE_BLEND);
         for(int i = 0;i < sizeof(text)/sizeof(text[0]);i++){
             SDL_SetTextureAlphaMod(text[i],window->alpha);
             SDL_SetTextureAlphaMod(new_font[i],window->alpha);
         }
-        //}
         switch(window->flags_image){
             case 1:
                 SDL_RenderCopy(render,text[0],NULL,NULL);
@@ -333,7 +308,6 @@ int main(){
     SDL_DestroyRenderer(render);
     for(int i = 0;i < len;i++){
         SDL_DestroyTexture(text[i]);
-        //TTF_CloseFont(font[i]);
     }
     for(int i = 0;i < ttf_max;i++){
         SDL_DestroyTexture(new_font[i]);
