@@ -2,28 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ResponseHelper;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use App\Http\Services\AuthService;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    private AuthService $authService;
+
+    public function __construct(AuthService $authService)
     {
-        $request->validate([
-            'username' => 'required|unique:users,username',
-            'password' => 'required|min:3',
-        ]);
+        $this->authService = $authService;
+    }
 
-        $password = Hash::make($request->password);
+    public function register(RegisterRequest $request)
+    {
+        try {
+            return ResponseHelper::success($this->authService->handleRegister($request), 'berhasil register');
+        } catch (\Throwable $thrw) {
+            return ResponseHelper::errror(message: 'gagal register');
+        }
+    }
 
-        User::create([
-            'username' => $request->username,
-            'password' => $password,
-        ]);
-
-        return response()->json([
-            'message' => 'lu berhasil register coy'
-        ]);
+    public function login(LoginRequest $request)
+    {
+        try {
+            return ResponseHelper::success($this->authService->handleLogin($request), 'berhasil login');
+        } catch (\Throwable $thrw) {
+            return ResponseHelper::errror(message: 'gagal login');
+        }
     }
 }
