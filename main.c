@@ -24,12 +24,13 @@ typedef struct {
     CURL *curl;
     CURLcode *res;
 } Curl;
-//init class and object
+
 typedef struct{
     volatile int counter;
     volatile int flags_image;
     volatile int flags_font;
     volatile int change_str;
+    volatile int alpha;
     SDL_Window* (*CreateWindow)(const char *title,int width,int height,Uint32 flags);
     SDL_Renderer* (*CreateRender)(SDL_Window *win,int level,Uint32 flags);
     SDL_Texture* (*CreateTextureSurf)(SDL_Renderer *render,const char *name);
@@ -65,26 +66,14 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, void *user) {
     size_t total_max = size * nmemb;
     Memory *mem = (Memory *)user;
 
-    // Cegah buffer overflow
     if(mem->size + total_max >= MAX_BUFFER - 1)
         total_max = MAX_BUFFER - mem->size - 1;
 
-    // SALIN data dari ptr ke buffer kamu
     memcpy(mem->data + mem->size, ptr, total_max);
 
     mem->size += total_max;
-    mem->data[mem->size] = '\0'; // pastikan null-terminated
-    return total_max; // jumlah byte yang disalin
-}
-
-
-void update_text(SDL_Renderer *renderer, TTF_Font *font, SDL_Color color, const char *new_str,
-                 SDL_Surface **surface, SDL_Texture **texture) {
-    if (*surface) SDL_FreeSurface(*surface);
-    if (*texture) SDL_DestroyTexture(*texture);
-    
-    *surface = TTF_RenderText_Blended(font, new_str, color);
-    *texture = SDL_CreateTextureFromSurface(renderer, *surface);
+    mem->data[mem->size] = '\0';
+    return total_max;
 }
 
 void *multithread(){
@@ -101,7 +90,7 @@ void *multithread(){
     }
 
     if(curl){
-        curl_easy_setopt(curl,CURLOPT_URL,"https://httpbin.org");
+        curl_easy_setopt(curl,CURLOPT_URL,"http://voltraz.xyz");
         curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"accept : application/json");
         curl_easy_setopt(curl,CURLOPT_ACCEPT_ENCODING,"");
         curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data);
@@ -112,7 +101,7 @@ void *multithread(){
         fprintf(stderr,"Error request get method",curl_easy_strerror(res));
     }
     //write(STDOUT_FILENO,mem.data,mem.size);
-    FILE *file = fopen("log.txt","w");
+    FILE *file = fopen("log.json","w");
     if(!file){
         //write(fd,mem.data,mem.size);
         perror("Error file isnt exist");
@@ -125,16 +114,11 @@ void *multithread(){
     return NULL;
 }
 
-
-//static Window window = {create_win,rendering};
-
 int main(){
     // Init
     Window *window = malloc(sizeof(Window));
     window->CreateWindow = create_win;
     window->CreateRender = rendering;
-    //window->CreateTextureSurf = create_texture_surf;
-    // Main program
     SDL_Init(SDL_INIT_VIDEO);
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
@@ -150,11 +134,7 @@ int main(){
     SDL_Color color = {0,0,0,0};
     Vector2 font_vector[4];
     SDL_Texture *new_font[4];
-    pthread_create(&tid,NULL,multithread,NULL);
-
-    //char *buff = calloc(MAX_BUFFER,sizeof(char));
-
-    //int ttf_max = sizeof(font_list)/sizeof(font_list[0]);
+    //pthread_create(&tid,NULL,multithread,NULL);
     char *str[4] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," "};
     int ttf_max = sizeof(str)/sizeof(str[0]);
 
@@ -164,10 +144,12 @@ int main(){
         font_vector[i].x =  text_font[i]->w;
         font_vector[i].y = text_font[i]->h;
         new_font[i] = SDL_CreateTextureFromSurface(render,text_font[i]);
+        SDL_SetTextureAlphaMod(new_font[i],SDL_BLENDMODE_BLEND);
     }
 
     //int size = 3;
     char *image_array[3] = {"background.jpeg","background2.jpeg","waifu1.jpeg"};
+    //char *char_chage[3] = {""}
     SDL_Texture *text[3];
     
     int len = sizeof(text)/sizeof(text[0]);
@@ -176,6 +158,7 @@ int main(){
     for(int i = 0;i < len;i++){
         surf[i] = IMG_Load(image_array[i]);
         text[i] = SDL_CreateTextureFromSurface(render,surf[i]);
+        SDL_SetTextureBlendMode(text[i],SDL_BLENDMODE_BLEND);
     }
     for(int i = 0;i < len;i++){
         SDL_FreeSurface(surf[i]);
@@ -192,10 +175,14 @@ int main(){
     float gravity = 0.5f;
     float velocity = 0;
 
+    printf("Engine by Vinzsan ⚥\n");
+    printf("Backend by Rev ♀\n");
+
     window->counter = 1;
     window->flags_image = 1;
     window->flags_font = 1;
     window->change_str = 1;
+    window->alpha = 255;
     SDL_Event e;
     while(window->counter){
         const Uint8 *keyState = SDL_GetKeyboardState(NULL);
@@ -237,14 +224,14 @@ int main(){
 
         int win_w,win_h;
         SDL_GetWindowSize(win,&win_w,&win_h);
-        if(keyState[SDL_SCANCODE_UP]) dst.y -= speed;
+        //if(keyState[SDL_SCANCODE_UP]) dst.y -= speed;
         if(keyState[SDL_SCANCODE_DOWN]) dst.y += speed;
         if(keyState[SDL_SCANCODE_RIGHT]) dst.x += speed;
         if(keyState[SDL_SCANCODE_LEFT]) dst.x -= speed;
         if(keyState[SDL_SCANCODE_SPACE]) velocity = -8;
         if(keyState[SDL_SCANCODE_T]){
             dst.w += 5;
-            dst.h += 5;
+            dst.h += 5; 
         }
         if(keyState[SDL_SCANCODE_Y]){
             dst.w -= 5;
@@ -253,11 +240,20 @@ int main(){
         if(keyState[SDL_SCANCODE_S]){
             speed += 1;
         }
+        if(keyState[SDL_SCANCODE_8]){
+            if(window->alpha <= 255){
+                window->alpha += 5;
+            }
+        }
+        if(keyState[SDL_SCANCODE_9]){
+            window->alpha -= 5;
+        }
         if(dst.x < 0) dst.x = 0;
         if(dst.x > win_w - dst.w) dst.x = win_w - dst.w;
         if(dst.y < 0) dst.y = 0;
         if(dst.y > win_h - dst.h) dst.y = win_h - dst.h;
 
+        // Delta 
         velocity += gravity;
         dst.y += (int)velocity;
 
@@ -265,8 +261,21 @@ int main(){
             dst.y = win_h - dst.h;
             velocity = 0;
         }
-
+        if (window->alpha > 255) window->alpha = 255;
+        if (window->alpha < 0) window->alpha = 0;
+        int margin_right = 100;
+        int distance_to_right = win_w - (dst.x + dst.w);
+            
+        if (distance_to_right <= margin_right) {
+            // Hitung alpha berdasarkan jarak
+            float factor = (float)distance_to_right / (float)margin_right;
+            window->alpha = (int)(factor * 255);
+        } else {
+            window->alpha = 255;
+        }
+        
         SDL_RenderClear(render);
+        SDL_SetRenderDrawColor(render,0,0,0,255);
         int width,height;
         SDL_GetWindowSize(win,&width,&height);
         SDL_Rect pollin[4];
@@ -275,8 +284,20 @@ int main(){
             SDL_Rect rectangle = {vector.x,vector.y,font_vector[i].x,font_vector[i].y};
             pollin[i] = rectangle;
         }
+        int rend_w,rend_h;
+        SDL_RenderGetLogicalSize(render,&rend_w,&rend_h);
+        //Vector2 barrier = {(width),(height + win_h)};
+        SDL_Rect barrier = {0,(win_h - 130),win_w,65};
+        SDL_RenderFillRect(render,&barrier);
+        if (SDL_HasIntersection(&dst, &barrier)) {
+            dst.y = barrier.y - dst.h; // biar tepat di atas lantai
+            velocity = 0;
+        }
         SDL_RenderSetLogicalSize(render,width,height);
-        //SDL_RenderClear(render);
+        for(int i = 0;i < sizeof(text)/sizeof(text[0]);i++){
+            SDL_SetTextureAlphaMod(text[i],window->alpha);
+            SDL_SetTextureAlphaMod(new_font[i],window->alpha);
+        }
         switch(window->flags_image){
             case 1:
                 SDL_RenderCopy(render,text[0],NULL,NULL);
@@ -285,7 +306,7 @@ int main(){
                 SDL_RenderCopy(render,text[1],NULL,NULL);
                 break;
             default:
-            break;
+            break;  
         }
         SDL_RenderCopy(render,text[2],NULL,&dst);// Assets bukan background
         switch(window->flags_font){
@@ -311,13 +332,12 @@ int main(){
     SDL_DestroyRenderer(render);
     for(int i = 0;i < len;i++){
         SDL_DestroyTexture(text[i]);
-        //TTF_CloseFont(font[i]);
     }
     for(int i = 0;i < ttf_max;i++){
         SDL_DestroyTexture(new_font[i]);
         TTF_CloseFont(font[i]);
     }
-    pthread_join(tid,NULL);
+    //pthread_join(tid,NULL);
     TTF_Quit();
     free(window);
     return 0;

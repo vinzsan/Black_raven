@@ -42,3 +42,14 @@ Backend Laravel menangani:
 ---
 
 ## 🧩 Struktur Proyek
+
+
+## BIAS pertama adalah : "si "A" ini tidak mendapatkan teman,atau mungkin device tidak mumpuni"
+## BIAS kedua adalah : si "A" ini terkena suatu masalah yang mungkin masih belum diketahui pasti
+## BIAS ketiga adalah : si "A" ini bisa saja keluar tanpa ada alasan,atau keluar seprti umumnya
+## BIAS keempat adalah : si "A" mungkin mempunyai suatu masalah pribadi dengan individu tersebut
+## BIAS kelima adalah : si individu mungkin hanya membenci atau sengaja memanfaatkan Defamation untuk menyerang individu "A"
+
+## Pertanyaan saya tambahan,apakah BIAS itu juga terstruktur atau tercipta dari suatu probrabilitas atau sekedar evaluasi dari suasana atau suatu hal yang sedang di lakukan?
+
+## Si "A" mungkin saja memiliki masalah pribadi dengan individu tersebut tetapi individu ini malah memanfaatkan Hate speech/Defamation di suatu komunitas tersebut,meski mungkin bersifat jokes atau semata mata hanya bercanda ini sebuah kesalahan fatal karena si "A" dapat tercemar nama baik atau imagenya menjadi rendah,tetapi kita belum tahu pasti kalau memang ke 2 nya adalah suatu orang yang memang sering problematik atau membuat drama.mendingan tanya langsung kepada individu yang hate dan bertanya juga ke si "A" apakah ke 2 nya memiliki result yang sama sama problem atau memang semata mata hanya memanfaatkan atau sekedar memperkeruh situasi saja.jika resultnya memang equal sama sama salah maka kita cukup diam dan tahu tanpa menyebarkan suatu maslaah sedangkan jika hasil result mengatakan bahwa kesimpulan tersebut hanya berupa penyerangan terhadap suatu individu atau sekedar jokes maka cukup bisa kontak admin secara private dan menjelaskan apa yang terjadi jika si "A" ini masih mau masuk ke grub tetapi karena individu ini memanfaatkan atau memang benar benar problem pribadi kita bisa skip saja.

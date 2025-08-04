@@ -1,0 +1,87 @@
+// Kamu membuat program array yang dimana kamu bisa
+// mengisi array atau mengganti isinya dengan nilai baru
+
+// System taxi
+/*
+class Math{
+    constructor(name){
+        this.name = name;
+    }
+    short_bubble(array,sizeof){
+    for(var i = 0;i < sizeof - 1;i++){
+        for(var j = 0;j < sizeof - 1;j++){
+            if(array[j] < array[j + 1]){
+                var temp = array[j];
+                array[j] = array[j + 1];
+                array[j + 1] = temp;
+            }
+        }
+    }
+    factorial(x);{
+        return (x <= 1) ? 1 : x * factorial(x - 1);
+    }
+    //radian_bubble();
+}
+}
+//var mobil = ["penumpang1","penumpang2","penumapng3"]; // Index terakhir
+//mobil.push("Penumpang4");
+
+function factorial(x){
+    return (x <= 1) ? 1 : x * factorial(x - 1);
+}
+
+var array = [2,5,3,2,5,4,6,34];
+const math = new Math();
+
+math.short_bubble(array,array.length);
+
+console.log(array.join());
+console.log(factorial(10));
+
+var hasil = 1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10;
+
+console.log(hasil);
+*/
+
+// 00001111
+// 00000001
+// &,^,|,~,<<,>>
+//console.log(10 ^ 10);
+
+// 1 ^ 0 = 1
+// 1 ^ 1 = 0
+// 0 ^ 1 = 1
+// 0 ^ 0 = 0
+
+// 1 & 0 = 0
+// 1 & 1 = 1
+// 0 & 1 = 0
+// 0 & 0 = 1;
+
+// 1 ~ 0 = 1
+// 1 ~ 1 = 0
+// 0 ~ 1 = 0
+// 1
+
+// 00000001
+// 11111110 ~
+
+console.log("Masukan nilai : ");
+var buffer1 = 1;
+console.log("Masukan operator : ");
+var opr = '-';
+console.log("Masukan nilai ke 2 : ");
+var buffer2 = 2;
+var hasil;
+switch(opr){
+    case '+':
+        hasil = buffer1 + buffer2;
+        break;
+    case '-':
+        hasil = buffer1 - buffer2;
+    default:
+        console.log("Operator tidak di ketahui");
+        break;
+}
+
+console.log(hasil);
