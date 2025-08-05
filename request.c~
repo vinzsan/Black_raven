@@ -1,50 +1,14 @@
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <curl/curl.h>
-
-#define MAX_BUFFER 4096 * 4
-
-struct SHARED_MEMORY{
-  char *ptr;
-  size_t size;
-};
-
-size_t write_data(void *ptr,size_t nmemb,size_t size,void *userdata){
-  size_t total = nmemb * size;
-  struct SHARED_MEMORY *mem = (struct SHARED_MEMORY *)userdata;
-  if(mem->size + total >= MAX_BUFFER - 1) total = mem->size + MAX_BUFFER - 1;
-  memcpy(mem->ptr + mem->size,ptr,total);
-  mem->size += total;
-  mem->ptr[mem->size] = '\0';
-  return total;
-}
 
 int main(){
-  CURL *curl;
-  CURLcode res;
-
-  struct SHARED_MEMORY mem = {
-    .ptr = calloc(MAX_BUFFER,sizeof(char)),
-    .size = 0
-  };
-
-  curl = curl_easy_init();
-  if(curl){
-    curl_easy_setopt(curl,CURLOPT_URL,"https://pkl.smkn1rejotangan.sch.id/public/");
-    curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"login=Login&username=0082454908&password=1234");
-    //curl_easy_setopt(curl,CURLOPT_ENCODING,1L);
-    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data);
-    curl_easy_setopt(curl,CURLOPT_WRITEDATA,&mem);
-    res = curl_easy_perform(curl);
+  char str[] = "68 74 74 70 73 3A 2F 2F 79 6F 75 74 75 2E 62 65 2F 58 36 45 4C 70 6C 75 79 5A 79 67 3F 73 69 3D 46 6E 31 6B 58 75 31 76 35 55 55 6E 4D 53 72 58";
+  char *token = strtok(str," ");
+  while(token != NULL){
+    printf("%s",token);
+    token = strtok(NULL," ");
   }
-  else{
-    fprintf(stderr,"Error request to serve %s",curl_easy_strerror(res));
-  }
-  write(STDOUT_FILENO,mem.ptr,mem.size);
-  free(mem.ptr);
-  curl_easy_cleanup(curl);
   return 0;
 }

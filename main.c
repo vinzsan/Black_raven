@@ -9,6 +9,8 @@
 #include <curl/curl.h>
 #include <fcntl.h>
 
+#define MAX_TEXT_CENTER 5
+
 #define MAX_BUFFER 4096
 
 typedef struct{
@@ -129,13 +131,13 @@ int main(){
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
     SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
     //char *font_list = "0xProtoNerdFontPropo-Bold.ttf";
-    TTF_Font *font[4];
-    SDL_Surface *text_font[4];
+    TTF_Font *font[MAX_TEXT_CENTER];
+    SDL_Surface *text_font[MAX_TEXT_CENTER];
     SDL_Color color = {0,0,0,0};
-    Vector2 font_vector[4];
-    SDL_Texture *new_font[4];
+    Vector2 font_vector[MAX_TEXT_CENTER];
+    SDL_Texture *new_font[MAX_TEXT_CENTER];
     //pthread_create(&tid,NULL,multithread,NULL);
-    char *str[4] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," "};
+    char *str[MAX_TEXT_CENTER] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," ","Namun hati hati terjatuh lagi"};
     int ttf_max = sizeof(str)/sizeof(str[0]);
 
     for(int i = 0;i < ttf_max;i++){
@@ -220,6 +222,9 @@ int main(){
             if(e.key.keysym.sym == SDLK_h){
                 window->flags_font = 4;
             }
+	    if(e.key.keysym.sym == SDLK_6){
+	      window->flags_font = 5;
+	    }
         }
 
         int win_w,win_h;
@@ -278,7 +283,7 @@ int main(){
         SDL_SetRenderDrawColor(render,0,0,0,255);
         int width,height;
         SDL_GetWindowSize(win,&width,&height);
-        SDL_Rect pollin[4];
+        SDL_Rect pollin[MAX_TEXT_CENTER];
         for(int i = 0;i < ttf_max;i++){
             Vector2 vector = {.x = (width - font_vector[i].x)/2,.y = (height - font_vector[i].y)/2};
             SDL_Rect rectangle = {vector.x,vector.y,font_vector[i].x,font_vector[i].y};
@@ -322,6 +327,9 @@ int main(){
             case 4:
                 SDL_RenderCopy(render,new_font[3],NULL,&pollin[3]);
                 break;
+	        case 5:
+	            SDL_RenderCopy(render,new_font[4],NULL,&pollin[4]);
+		        break;
             default:
             break;
         }
