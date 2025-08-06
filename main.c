@@ -259,7 +259,6 @@ int main(){
         if(dst.y < 0) dst.y = 0;
         if(dst.y > win_h - dst.h) dst.y = win_h - dst.h;
 
-        // Delta 
         velocity += gravity;
         dst.y += (int)velocity;
 
