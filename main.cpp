@@ -1,23 +1,70 @@
 #include <iostream>
+#include <unistd.h>
+#include <string.h>
 
-class Human{
-    private:
-    char *name;
-    char *otak;
+class Stdout{
     public:
-    void change_name(char *new_name){
-        name = new_name;
-    }
-
-    void print_name(){
-        std::cout << name << std::endl;
+    void print(const char *str){
+        while(*str){
+            if(*str == '\n'){
+                sleep(2);
+            }
+            putchar(*str++);
+            fflush(stdout);
+            usleep(90995);
+        }
     }
 };
 
 int main(){
-    Human human;
-    human.print_name();
-    human.change_name("Joseph");
-    human.print_name();
+    const char *lyre = "Nama yang sama bertahan\n"
+                        "Dalam ruangan hening\n"
+                        "Tanpa suara bertahan\n"
+                        "Tak bergeming\n"
+                        "Terlalu lama bercanda\n"
+                        "Kita tak terbiasa\n"
+                        "Dengan celaka yang nyata\n"
+                        "Diam tak berdaya\n"
+                        "Namun aku bingung kenapa ku tak pergi\n"
+                        "Aku bingung kalian masih di sini\n"
+                        "Apa mungkin karena terlalu lama\n"
+                        "Apa benar tuk berbagi derita\n"
+                        "Mungkin nanti semua justru memburuk\n"
+                        "Hati-hati namun terjatuh lagi\n"
+                        "Tapi luka adalah niscaya\n"
+                        "Kutanggung denganmu selama ku mampu\n"
+                        "Selama ku mampu\n"
+                        "Di kehidupan kedua (di kesempatan kedua)\n"
+                        "S'moga kau tak terlalu keras kepala\n"
+                        "Atau mungkin ini bukan yang pertama (ini bukan yang pertama)\n"
+                        "Dan kita diberi kesempatan berubah\n"
+                        "Kuyakin nyawa kita bertautan\n"
+                        "Khatam berbagai cobaan\n"
+                        "Selalu menertawakan ramalan bintang kartu tarot\n"
+                        "Orang pintar pembaca nasib\n"
+                        "Namun aku bingung kenapa ku tak pergi\n"
+                        "Aku bingung kalian masih di sini\n"
+                        "Apa mungkin karena terlalu lama\n"
+                        "Apa benar tuk berbagi derita\n"
+                        "Mungkin nanti semua justru memburuk\n"
+                        "Hati-hati namun terjatuh lagi\n"
+                        "Tapi luka adalah niscaya\n"
+                        "Kutanggung denganmu selama ku mampu\n"
+                        "Selama ku mampu\n"
+                        "Selalu menertawakan ramalan bintang kartu tarot\n"
+                        "Orang pintar pembaca nasib namun\n"
+                        "Padamu kupercaya\n"
+                        "Tak masuk logika\n"
+                        "Padamu kupercaya\n"
+                        "Tak masuk logika (tak masuk logika)\n"
+                        "Padamu kupercaya (padamu kupercaya)\n"
+                        "Tak masuk logika (tak masuk logika)\n"
+                        "Padamu kupercaya (padamu kupercaya)\n"
+                        "Tak masuk logika (tak masuk logika)\n"
+                        "Padamu kupercaya\n"
+                        "Tak masuk logika";
+                        
+    Stdout std;
+    std.print(lyre);
     return 0;
 }

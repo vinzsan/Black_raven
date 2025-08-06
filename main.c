@@ -10,6 +10,7 @@
 #include <fcntl.h>
 
 #define MAX_TEXT_CENTER 5
+#define MAX_IMAGE_TEXT 3
 
 #define MAX_BUFFER 4096
 
@@ -100,7 +101,7 @@ void *multithread(){
         res = curl_easy_perform(curl);  
     }
     else{
-        fprintf(stderr,"Error request get method",curl_easy_strerror(res));
+        fprintf(stderr,"Error request get method %s",curl_easy_strerror(res));
     }
     //write(STDOUT_FILENO,mem.data,mem.size);
     FILE *file = fopen("log.json","w");
@@ -150,9 +151,9 @@ int main(){
     }
 
     //int size = 3;
-    char *image_array[3] = {"background.jpeg","background2.jpeg","waifu1.jpeg"};
+    char *image_array[MAX_IMAGE_TEXT] = {"background.jpeg","background2.jpeg","waifu1.jpeg"};
     //char *char_chage[3] = {""}
-    SDL_Texture *text[3];
+    SDL_Texture *text[MAX_IMAGE_TEXT];
     
     int len = sizeof(text)/sizeof(text[0]);
     SDL_Surface *surf[len];
@@ -270,7 +271,8 @@ int main(){
         if (window->alpha < 0) window->alpha = 0;
         int margin_right = 100;
         int distance_to_right = win_w - (dst.x + dst.w);
-            
+        /*
+        
         if (distance_to_right <= margin_right) {
             // Hitung alpha berdasarkan jarak
             float factor = (float)distance_to_right / (float)margin_right;
@@ -278,6 +280,7 @@ int main(){
         } else {
             window->alpha = 255;
         }
+        */   
         
         SDL_RenderClear(render);
         SDL_SetRenderDrawColor(render,0,0,0,255);
@@ -301,6 +304,8 @@ int main(){
         SDL_RenderSetLogicalSize(render,width,height);
         for(int i = 0;i < sizeof(text)/sizeof(text[0]);i++){
             SDL_SetTextureAlphaMod(text[i],window->alpha);
+        }
+        for(int i = 0;i < ttf_max;i++){
             SDL_SetTextureAlphaMod(new_font[i],window->alpha);
         }
         switch(window->flags_image){
