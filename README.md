@@ -12,7 +12,7 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework"alt="License"></a>
 </p>
 
-# 🛠️ PixelCraft — Game Sederhana Terinspirasi dari Terraria
+# 🛠️ Alca Torda — Game Sederhana Terinspirasi dari Terraria
 
 PixelCraft adalah game 2D pixel sandbox sederhana yang terinspirasi dari *Terraria*, dibangun menggunakan **SDL2** untuk frontend gamenya dan **Laravel PHP** sebagai backend API. Game ini mendukung fitur seperti:
 
