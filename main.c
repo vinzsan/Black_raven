@@ -101,8 +101,8 @@ void *multithread(){
     }
 
     if(curl){
-        curl_easy_setopt(curl,CURLOPT_URL,"http://voltraz.xyz");
-        curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"accept : application/json");
+        curl_easy_setopt(curl,CURLOPT_URL,"http://192.168.168.160:3000/api/getall");
+	//        curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"accept : application/json");
         curl_easy_setopt(curl,CURLOPT_ACCEPT_ENCODING,"");
         curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data);
         curl_easy_setopt(curl,CURLOPT_WRITEDATA,&mem);
@@ -149,7 +149,7 @@ int main(){
     SDL_Color color = {0,0,0,0};
     Vector2 font_vector[MAX_TEXT_CENTER];
     SDL_Texture *new_font[MAX_TEXT_CENTER];
-    //pthread_create(&tid,NULL,multithread,NULL);
+    pthread_create(&tid,NULL,multithread,NULL);
     char *str[MAX_TEXT_CENTER] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," ","Namun hati hati terjatuh lagi"};
     int ttf_max = sizeof(str)/sizeof(str[0]);
 
@@ -361,7 +361,7 @@ int main(){
         SDL_DestroyTexture(new_font[i]);
         TTF_CloseFont(font[i]);
     }
-    //pthread_join(tid,NULL);
+    pthread_join(tid,NULL);
     TTF_Quit();
     IMG_Quit();
     //free(window);
