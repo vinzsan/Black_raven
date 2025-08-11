@@ -34,31 +34,39 @@ typedef struct{
     volatile int flags_font;
     volatile int change_str;
     volatile int alpha;
+} Flags;
+
+typedef struct{
     SDL_Window* (*CreateWindow)(const char *title,int width,int height,Uint32 flags);
     SDL_Renderer* (*CreateRender)(SDL_Window *win,int level,Uint32 flags);
     SDL_Texture* (*CreateTextureSurf)(SDL_Renderer *render,const char *name);
-} Window;
+    Flags flags;
+} WrapperSDL2;
 
 SDL_Window *create_win(const char *title,int w,int h,Uint32 flags){
     SDL_WindowFlags f = flags;
     SDL_Window *window = SDL_CreateWindow(title,SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,w,h,f);
     if(!window){
-        perror("Error create window");
-        return NULL;
+      printf("Error made windows %s",SDL_GetError());
+      return NULL;
     }
     return window;
 }
 
 SDL_Renderer *rendering(SDL_Window *win,int l,Uint32 f){
     SDL_Renderer *ren = SDL_CreateRenderer(win,l,f);
+    if(!ren){
+      printf("Error made renderer %s",SDL_GetError());
+      return NULL;
+    }
     return ren;
 }
 
 SDL_Texture *create_texture_surf(SDL_Renderer *render,const char *name){
     SDL_Surface *surf = IMG_Load(name);
     if(!surf){
-        perror("Error create surface");
-        return NULL;
+      printf("Error create texture surface %s",SDL_GetError());
+      return NULL;
     }
     SDL_Texture *text = SDL_CreateTextureFromSurface(render,surf);
     SDL_FreeSurface(surf);
@@ -117,20 +125,24 @@ void *multithread(){
     return NULL;
 }
 
+WrapperSDL2 InitWrapper(){
+  WrapperSDL2 win = {create_win,rendering};
+  memset(&win.flags,0,sizeof(win.flags));
+  return win;
+}
+
 int main(){
     // Init
-    Window *window = malloc(sizeof(Window));
-    window->CreateWindow = create_win;
-    window->CreateRender = rendering;
+    WrapperSDL2 Wrapper = InitWrapper();
     SDL_Init(SDL_INIT_VIDEO);
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
     pthread_t tid;
     CURL *curl = curl_easy_init();
     CURLcode res;
-    SDL_Window *win = window->CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    SDL_Window *win = Wrapper.CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
-    SDL_Renderer *render = window->CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
+    SDL_Renderer *render = Wrapper.CreateRender(win,-1,SDL_RENDERER_ACCELERATED);
     //char *font_list = "0xProtoNerdFontPropo-Bold.ttf";
     TTF_Font *font[MAX_TEXT_CENTER];
     SDL_Surface *text_font[MAX_TEXT_CENTER];
@@ -181,51 +193,51 @@ int main(){
     printf("Engine by Vinzsan ⚥\n");
     printf("Backend by Rev ♀\n");
 
-    window->counter = 1;
-    window->flags_image = 1;
-    window->flags_font = 1;
-    window->change_str = 1;
-    window->alpha = 255;
+    Wrapper.flags.alpha = 255;
+    Wrapper.flags.flags_font = 1;
+    Wrapper.flags.flags_image = 1;
+    Wrapper.flags.change_str = 1;
+    Wrapper.flags.counter = 1;
     SDL_Event e;
-    while(window->counter){
+    while(Wrapper.flags.counter){
         const Uint8 *keyState = SDL_GetKeyboardState(NULL);
         while(SDL_PollEvent(&e)){
             if(e.type == SDL_QUIT){
-                window->counter = 0;
+                Wrapper.flags.counter = 0;
             }
-            if(e.key.keysym.sym == SDLK_q) window->counter = 0;
+            if(e.key.keysym.sym == SDLK_q) Wrapper.flags.counter = 0;
             if(e.key.keysym.sym == SDLK_1){
-                window->flags_image = 1;
+                Wrapper.flags.flags_image = 1;
             }
             if(e.key.keysym.sym == SDLK_2){
-                window->flags_image = 2;
+                Wrapper.flags.flags_image = 2;
             }
             if(e.key.keysym.sym == SDLK_w){
-                window->flags_font = 1;
+                Wrapper.flags.flags_font = 1;
             }
             if(e.key.keysym.sym == SDLK_e){
-                window->flags_font = 2;
+                Wrapper.flags.flags_font = 2;
             }
             if(e.key.keysym.sym == SDLK_ESCAPE){
-                window->flags_image = 0;
+                Wrapper.flags.flags_image = 0;
             }
             if(e.key.keysym.sym == SDLK_r){
                 dst.h = buffer.h;
                 dst.w = buffer.w;
-                window->flags_font = 4;
+                Wrapper.flags.flags_font = 4;
             }
             if(e.key.keysym.sym == SDLK_u){
                 speed = 5;
             }
             if(e.key.keysym.sym == SDLK_4){
-                window->flags_font = 3;
+                Wrapper.flags.flags_font = 3;
             }
             if(e.key.keysym.sym == SDLK_h){
-                window->flags_font = 4;
+                Wrapper.flags.flags_font = 4;
             }
-	    if(e.key.keysym.sym == SDLK_6){
-	      window->flags_font = 5;
-	    }
+	        if(e.key.keysym.sym == SDLK_6){
+                Wrapper.flags.flags_font = 5;
+	        }
         }
 
         int win_w,win_h;
@@ -247,12 +259,12 @@ int main(){
             speed += 1;
         }
         if(keyState[SDL_SCANCODE_8]){
-            if(window->alpha <= 255){
-                window->alpha += 5;
+            if(Wrapper.flags.alpha <= 255){
+                Wrapper.flags.alpha += 5;
             }
         }
         if(keyState[SDL_SCANCODE_9]){
-            window->alpha -= 5;
+            Wrapper.flags.alpha -= 5;
         }
         if(dst.x < 0) dst.x = 0;
         if(dst.x > win_w - dst.w) dst.x = win_w - dst.w;
@@ -266,8 +278,8 @@ int main(){
             dst.y = win_h - dst.h;
             velocity = 0;
         }
-        if (window->alpha > 255) window->alpha = 255;
-        if (window->alpha < 0) window->alpha = 0;
+        if (Wrapper.flags.alpha > 255) Wrapper.flags.alpha = 255;
+        if (Wrapper.flags.alpha < 0) Wrapper.flags.alpha = 0;
         int margin_right = 100;
         int distance_to_right = win_w - (dst.x + dst.w);
         /*
@@ -302,12 +314,12 @@ int main(){
         }
         SDL_RenderSetLogicalSize(render,width,height);
         for(int i = 0;i < sizeof(text)/sizeof(text[0]);i++){
-            SDL_SetTextureAlphaMod(text[i],window->alpha);
+            SDL_SetTextureAlphaMod(text[i],Wrapper.flags.alpha);
         }
         for(int i = 0;i < ttf_max;i++){
-            SDL_SetTextureAlphaMod(new_font[i],window->alpha);
+            SDL_SetTextureAlphaMod(new_font[i],Wrapper.flags.alpha);
         }
-        switch(window->flags_image){
+        switch(Wrapper.flags.flags_image){
             case 1:
                 SDL_RenderCopy(render,text[0],NULL,NULL);
                 break;
@@ -318,7 +330,7 @@ int main(){
             break;  
         }
         SDL_RenderCopy(render,text[2],NULL,&dst);// Assets bukan background
-        switch(window->flags_font){
+        switch(Wrapper.flags.flags_font){
             case 1:
                 SDL_RenderCopy(render,new_font[0],NULL,&pollin[0]);
                 break;
@@ -351,6 +363,7 @@ int main(){
     }
     //pthread_join(tid,NULL);
     TTF_Quit();
-    free(window);
+    IMG_Quit();
+    //free(window);
     return 0;
 }
