@@ -1,0 +1,51 @@
+;extern CreateWindowA
+extern MessageBoxA
+extern ExitProcess
+
+section .rodata
+    L1 db "Error : code -11 futex handler schied yield",0
+    L2 db "Error Handler",0
+
+section .text
+    global main
+
+main:
+    
+    sub rsp,40
+    
+    ;push r10
+
+    xor r10d,r10d
+    
+    mov r10d,10
+
+FOR:
+
+    cmp r10d,0
+    jz .done
+    call Window
+    dec r10d
+    jmp FOR
+
+.done:
+    
+    ;pop r10
+    add rsp,40
+    xor rcx,rcx
+    call ExitProcess
+
+Window:
+
+    push rbp
+    mov rbp,rsp
+    sub rsp,16
+    
+    xor rcx,rcx
+    lea rdx,[rel L1]
+    lea r8,[rel L2]
+    xor r9d,r9d
+    call MessageBoxA
+    
+    add rsp,16
+    pop rbp
+    ret

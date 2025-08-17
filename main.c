@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#define REQUEST_SERVER
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -8,11 +10,22 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <curl/curl.h>
 #include <fcntl.h>
+#include "request.h"
 
 #define MAX_TEXT_CENTER 5
 #define MAX_IMAGE_TEXT 3
 
 #define MAX_BUFFER 4096
+
+pthread_mutex_t futex = PTHREAD_MUTEX_INITIALIZER;
+
+//extern void *get_login_page(const char *username,const char *password);
+
+typedef union{
+    int Integer;
+    float Float64;
+    double Double;
+} static_cast;
 
 typedef struct{
     int x,y;
@@ -34,6 +47,10 @@ typedef struct{
     volatile int flags_font;
     volatile int change_str;
     volatile int alpha;
+    //Flags system page
+    volatile int flags_login_page;
+    volatile int flags_settings_page;
+    static_cast Static_cast;
 } Flags;
 
 typedef struct{
@@ -102,7 +119,7 @@ void *multithread(){
 
     if(curl){
         curl_easy_setopt(curl,CURLOPT_URL,"http://192.168.168.160:3000/api/getall");
-	//        curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"accept : application/json");
+	    //curl_easy_setopt(curl,CURLOPT_POSTFIELDS,"accept : application/json");
         curl_easy_setopt(curl,CURLOPT_ACCEPT_ENCODING,"");
         curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data);
         curl_easy_setopt(curl,CURLOPT_WRITEDATA,&mem);
@@ -138,6 +155,7 @@ int main(){
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
     pthread_t tid;
+    curl_global_init(CURL_GLOBAL_DEFAULT);
     CURL *curl = curl_easy_init();
     CURLcode res;
     SDL_Window *win = Wrapper.CreateWindow("Black Raven",800,600,SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -150,16 +168,19 @@ int main(){
     Vector2 font_vector[MAX_TEXT_CENTER];
     SDL_Texture *new_font[MAX_TEXT_CENTER];
     pthread_create(&tid,NULL,multithread,NULL);
-    char *str[MAX_TEXT_CENTER] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," ","Namun hati hati terjatuh lagi"};
+    pthread_detach(tid);
+    char *str[MAX_TEXT_CENTER] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," ","Demonstrated of C power and PHP server side"};
     int ttf_max = sizeof(str)/sizeof(str[0]);
 
     for(int i = 0;i < ttf_max;i++){
+        pthread_mutex_lock(&futex);
         font[i] = TTF_OpenFont("0xProtoNerdFont-Regular.ttf",24);
         text_font[i] = TTF_RenderText_Blended(font[i],str[i],color);
         font_vector[i].x =  text_font[i]->w;
         font_vector[i].y = text_font[i]->h;
         new_font[i] = SDL_CreateTextureFromSurface(render,text_font[i]);
         SDL_SetTextureAlphaMod(new_font[i],SDL_BLENDMODE_BLEND);
+        pthread_mutex_unlock(&futex);
     }
 
     //int size = 3;
@@ -193,16 +214,31 @@ int main(){
     printf("Engine by Vinzsan ⚥\n");
     printf("Backend by Rev ♀\n");
 
+    char *request = (char *)get_page("https://google.com");
+    printf("%s",request);
+    fflush(stdout);
+    free(request);
+
+    Wrapper.flags.Static_cast.Float64 = 0;
+
     Wrapper.flags.alpha = 255;
     Wrapper.flags.flags_font = 1;
     Wrapper.flags.flags_image = 1;
     Wrapper.flags.change_str = 1;
     Wrapper.flags.counter = 1;
+    Wrapper.flags.flags_login_page = 1;
+    //SDL_Event event_main;
     SDL_Event e;
     while(Wrapper.flags.counter){
-        const Uint8 *keyState = SDL_GetKeyboardState(NULL);
         while(SDL_PollEvent(&e)){
             if(e.type == SDL_QUIT){
+                Wrapper.flags.counter = 0;
+            }
+            if(e.key.keysym.sym == SDLK_q){
+                Wrapper.flags.counter = 0;
+            }
+            if(Wrapper.flags.flags_login_page == 2){
+                if(e.type == SDL_QUIT){
                 Wrapper.flags.counter = 0;
             }
             if(e.key.keysym.sym == SDLK_q) Wrapper.flags.counter = 0;
@@ -238,8 +274,26 @@ int main(){
 	        if(e.key.keysym.sym == SDLK_6){
                 Wrapper.flags.flags_font = 5;
 	        }
+            }
         }
-
+        SDL_RenderClear(render);
+        SDL_SetRenderDrawColor(render,0,0,0,255);
+        //<--------REGION BLOCK PAGE------------------
+        if(Wrapper.flags.flags_login_page == 1)
+        {
+            const Uint8* keyState = SDL_GetKeyboardState(NULL);
+            int width,heigth;
+            SDL_GetWindowSize(win,&width,&heigth);
+            Vector2 win_size = {(width - 100) / 2,(heigth - 100) / 2};
+            SDL_Rect rect = {win_size.x,win_size.y,100,100};
+            SDL_RenderFillRect(render,&rect);
+            if(keyState[SDL_SCANCODE_K]) Wrapper.flags.flags_login_page = 2;
+            SDL_SetRenderDrawColor(render,100,100,100,255);
+        }
+        //---------END REGION BLOCK PAGE--------------
+        if(Wrapper.flags.flags_login_page == 2){
+        const Uint8 *keyState = SDL_GetKeyboardState(NULL);
+        //SDL_RenderClear(render);
         int win_w,win_h;
         SDL_GetWindowSize(win,&win_w,&win_h);
         //if(keyState[SDL_SCANCODE_UP]) dst.y -= speed;
@@ -293,8 +347,8 @@ int main(){
         }
         */   
         
-        SDL_RenderClear(render);
-        SDL_SetRenderDrawColor(render,0,0,0,255);
+        //SDL_RenderClear(render);
+        //SDL_SetRenderDrawColor(render,0,0,0,255);
         int width,height;
         SDL_GetWindowSize(win,&width,&height);
         SDL_Rect pollin[MAX_TEXT_CENTER];
@@ -349,6 +403,9 @@ int main(){
             default:
             break;
         }
+        //SDL_RenderPresent(render);
+        //SDL_Delay(16);
+        }
         SDL_RenderPresent(render);
         SDL_Delay(16);
     }
@@ -361,9 +418,10 @@ int main(){
         SDL_DestroyTexture(new_font[i]);
         TTF_CloseFont(font[i]);
     }
-    pthread_join(tid,NULL);
+    //pthread_join(tid,NULL);
     TTF_Quit();
     IMG_Quit();
+    curl_global_cleanup();
     //free(window);
     return 0;
 }

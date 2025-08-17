@@ -1,4 +1,9 @@
-xor rax,rax
-lea rbx,[rax]
-mov rbx,10
-; RAX sekarang nilainya menjadi 10 karena rbx membawa address dari RAX
+section .rodata
+    L1 db "Hello world",0x0A,0
+
+section .text
+    global _start
+
+_start:
+    
+    xor rbp,rbp
