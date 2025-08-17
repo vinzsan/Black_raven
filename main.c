@@ -458,6 +458,7 @@ int main(){
         TTF_CloseFont(font[i]);
     }
     SDL_DestroyTexture(login_str_texture);
+    TTF_CloseFont(font_render);
     //pthread_join(tid,NULL);
     TTF_Quit();
     IMG_Quit();
