@@ -1,0 +1,90 @@
+//#include <curl/easy.h>include <curl/easy.h>
+//#include <curl/easy.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <curl/curl.h>
+#include <string.h>
+
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+#define MAX_BUFFER 4096 // sizeof 4kb
+
+typedef struct{
+  char *ptr;
+  size_t size;
+} Memory;
+
+size_t write_data_func(void *ptr,size_t size,size_t nmemb,void *userdata){
+  size_t total_max = size * nmemb;
+  Memory *mem = (Memory *)userdata;
+
+  if(mem->size + total_max >= MAX_BUFFER - 1) total_max = mem->size - MAX_BUFFER - 1;
+  memcpy(mem->ptr + mem->size,ptr,total_max);
+
+  mem->size += total_max;
+  mem->ptr[mem->size] = '\0';
+  return total_max;
+}
+
+__attribute__((warning("Warning : function doesnt auto free")))
+void *get_login_page(const char *username,const char *password){
+  if(username == (void *)0 || password == (void *)0) return (void *)0;
+  CURL *curl = curl_easy_init();
+  CURLcode res;
+
+  Memory shared = {
+    .ptr = calloc(MAX_BUFFER,sizeof(char)),
+    .size = 0
+  };
+
+  char buffer[128];
+
+  snprintf(buffer,sizeof(buffer),"username=%s&password=%s",username,password);
+  //  buffer[127] = '\0';
+
+  if(curl){
+    curl_easy_setopt(curl,CURLOPT_URL,"http://192.168.168.160:3000/api/getall");
+    curl_easy_setopt(curl,CURLOPT_POST,1L);
+    curl_easy_setopt(curl,CURLOPT_POSTFIELDS,buffer);
+    curl_easy_setopt(curl,CURLOPT_ENCODING,"");
+    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data_func);
+    curl_easy_setopt(curl,CURLOPT_WRITEDATA,&shared);
+    res = curl_easy_perform(curl);
+  }
+  if(res != CURLE_OK){
+    fprintf(stderr,"Error login page request aowkaowkok",curl_easy_strerror(res));
+    free(shared.ptr);
+    shared.ptr = NULL;
+  }
+  curl_easy_cleanup(curl);
+  return shared.ptr; // Warning data can deprecated and undifined behavior
+}
+
+void *get_page(const char *getreq){
+  CURL *curl = curl_easy_init();
+  CURLcode res;
+
+  Memory mem ={
+    .ptr = calloc(MAX_BUFFER,sizeof(char)),
+    .size = 0
+  };
+
+  if(curl){
+    //curl_easy_setopt(curl,CURLOPT_URL,"http://192.168.168.160:3000/api/getall");
+    curl_easy_setopt(curl,CURLOPT_URL,getreq);
+    curl_easy_setopt(curl,CURLOPT_ENCODING,"");
+    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data_func);
+    curl_easy_setopt(curl,CURLOPT_WRITEDATA,&mem);
+    res = curl_easy_perform(curl);
+  }
+  if(res != CURLE_OK){
+    fprintf(stderr,"Error get data",curl_easy_strerror(res));
+    free(mem.ptr);
+    curl_easy_cleanup(curl);
+    return mem.ptr = NULL;
+  }
+  curl_easy_cleanup(curl);
+  return mem.ptr;
+}
