@@ -347,101 +347,101 @@ int main(){
         //---------END REGION BLOCK PAGE--------------
         if(Wrapper.flags.flags_login_page == 2){
         //const Uint8 *keyState = SDL_GetKeyboardState(NULL);
-        int win_w,win_h;
-        SDL_GetWindowSize(win,&win_w,&win_h);
-        if(keyState[SDL_SCANCODE_DOWN]) dst.y += speed;
-        if(keyState[SDL_SCANCODE_RIGHT]) dst.x += speed;
-        if(keyState[SDL_SCANCODE_LEFT]) dst.x -= speed;
-        if(keyState[SDL_SCANCODE_SPACE]) velocity = -8;
-        if(keyState[SDL_SCANCODE_T]){
-            dst.w += 5;
-            dst.h += 5; 
-        }
-        if(keyState[SDL_SCANCODE_Y]){
-            dst.w -= 5;
-            dst.h -= 5;
-        }
-        if(keyState[SDL_SCANCODE_S]){
-            speed += 1;
-        }
-        if(keyState[SDL_SCANCODE_8]){
-            if(Wrapper.flags.alpha <= 255){
-                Wrapper.flags.alpha += 5;
+            int win_w,win_h;
+            SDL_GetWindowSize(win,&win_w,&win_h);
+            if(keyState[SDL_SCANCODE_DOWN]) dst.y += speed;
+            if(keyState[SDL_SCANCODE_RIGHT]) dst.x += speed;
+            if(keyState[SDL_SCANCODE_LEFT]) dst.x -= speed;
+            if(keyState[SDL_SCANCODE_SPACE]) velocity = -8;
+            if(keyState[SDL_SCANCODE_T]){
+                dst.w += 5;
+                dst.h += 5; 
             }
-        }
-        if(keyState[SDL_SCANCODE_9]){
-            Wrapper.flags.alpha -= 5;
-        }
-        if(dst.x < 0) dst.x = 0;
-        if(dst.x > win_w - dst.w) dst.x = win_w - dst.w;
-        if(dst.y < 0) dst.y = 0;
-        if(dst.y > win_h - dst.h) dst.y = win_h - dst.h;
-
-        velocity += gravity;
-        dst.y += (int)velocity;
-
-        if(dst.y + dst.h >= win_h){
-            dst.y = win_h - dst.h;
-            velocity = 0;
-        }
-        if (Wrapper.flags.alpha > 255) Wrapper.flags.alpha = 255;
-        if (Wrapper.flags.alpha < 0) Wrapper.flags.alpha = 0;
-        int margin_right = 100;
-        int distance_to_right = win_w - (dst.x + dst.w);
-        /*
+            if(keyState[SDL_SCANCODE_Y]){
+                dst.w -= 5;
+                dst.h -= 5;
+            }
+            if(keyState[SDL_SCANCODE_S]){
+                speed += 1;
+            }
+            if(keyState[SDL_SCANCODE_8]){
+                if(Wrapper.flags.alpha <= 255){
+                    Wrapper.flags.alpha += 5;
+                }
+            }
+            if(keyState[SDL_SCANCODE_9]){
+                Wrapper.flags.alpha -= 5;
+            }
+            if(dst.x < 0) dst.x = 0;
+            if(dst.x > win_w - dst.w) dst.x = win_w - dst.w;
+            if(dst.y < 0) dst.y = 0;
+            if(dst.y > win_h - dst.h) dst.y = win_h - dst.h;
         
-        if (distance_to_right <= margin_right) {
-            // Hitung alpha berdasarkan jarak
-            float factor = (float)distance_to_right / (float)margin_right;
-            window->alpha = (int)(factor * 255);
-        } else {
-            window->alpha = 255;
-        }
-        */   
+            velocity += gravity;
+            dst.y += (int)velocity;
         
-        //SDL_RenderClear(render);
-        //SDL_SetRenderDrawColor(render,0,0,0,255);
-        int width,height;
-        SDL_GetWindowSize(win,&width,&height);
-        int rend_w,rend_h;
-        SDL_RenderGetLogicalSize(render,&rend_w,&rend_h);
-        //Vector2 barrier = {(width),(height + win_h)};
-        SDL_Rect barrier = {0,(win_h - 130),win_w,65};
-        SDL_RenderFillRect(render,&barrier);
-        if (SDL_HasIntersection(&dst, &barrier)) {
-            dst.y = barrier.y - dst.h; // biar tepat di atas lantai
-            velocity = 0;
-        }
-        switch(Wrapper.flags.flags_image){
-            case 1:
-                SDL_RenderCopy(render,text[0],NULL,NULL);
+            if(dst.y + dst.h >= win_h){
+                dst.y = win_h - dst.h;
+                velocity = 0;
+            }
+            if (Wrapper.flags.alpha > 255) Wrapper.flags.alpha = 255;
+            if (Wrapper.flags.alpha < 0) Wrapper.flags.alpha = 0;
+            int margin_right = 100;
+            int distance_to_right = win_w - (dst.x + dst.w);
+            /*
+            
+            if (distance_to_right <= margin_right) {
+                // Hitung alpha berdasarkan jarak
+                float factor = (float)distance_to_right / (float)margin_right;
+                window->alpha = (int)(factor * 255);
+            } else {
+                window->alpha = 255;
+            }
+            */   
+            
+            //SDL_RenderClear(render);
+            //SDL_SetRenderDrawColor(render,0,0,0,255);
+            int width,height;
+            SDL_GetWindowSize(win,&width,&height);
+            int rend_w,rend_h;
+            SDL_RenderGetLogicalSize(render,&rend_w,&rend_h);
+            //Vector2 barrier = {(width),(height + win_h)};
+            SDL_Rect barrier = {0,(win_h - 130),win_w,65};
+            SDL_RenderFillRect(render,&barrier);
+            if (SDL_HasIntersection(&dst, &barrier)) {
+                dst.y = barrier.y - dst.h; // biar tepat di atas lantai
+                velocity = 0;
+            }
+            switch(Wrapper.flags.flags_image){
+                case 1:
+                    SDL_RenderCopy(render,text[0],NULL,NULL);
+                    break;
+                case 2:
+                    SDL_RenderCopy(render,text[1],NULL,NULL);
+                    break;
+                default:
+                break;  
+            }
+            SDL_RenderCopy(render,text[2],NULL,&dst);// Assets bukan background
+            switch(Wrapper.flags.flags_font){
+                case 1:
+                    SDL_RenderCopy(render,new_font[1],NULL,&pollin[1]);
+                    break;
+                case 2:
+                    SDL_RenderCopy(render,new_font[2],NULL,&pollin[2]);
+                    break;
+                case 3:
+                    SDL_RenderCopy(render,new_font[3],NULL,&pollin[3]);
+                    break;
+                case 4:
+                    SDL_RenderCopy(render,new_font[4],NULL,&pollin[4]);
+                    break;
+	            case 5:
+	                SDL_RenderCopy(render,new_font[5],NULL,&pollin[5]);
+		            break;
+                default:
                 break;
-            case 2:
-                SDL_RenderCopy(render,text[1],NULL,NULL);
-                break;
-            default:
-            break;  
-        }
-        SDL_RenderCopy(render,text[2],NULL,&dst);// Assets bukan background
-        switch(Wrapper.flags.flags_font){
-            case 1:
-                SDL_RenderCopy(render,new_font[1],NULL,&pollin[1]);
-                break;
-            case 2:
-                SDL_RenderCopy(render,new_font[2],NULL,&pollin[2]);
-                break;
-            case 3:
-                SDL_RenderCopy(render,new_font[3],NULL,&pollin[3]);
-                break;
-            case 4:
-                SDL_RenderCopy(render,new_font[4],NULL,&pollin[4]);
-                break;
-	        case 5:
-	            SDL_RenderCopy(render,new_font[5],NULL,&pollin[5]);
-		        break;
-            default:
-            break;
-        }
+            }
         //SDL_RenderPresent(render);
         //SDL_Delay(16);
         }
