@@ -57,8 +57,11 @@ typedef struct{
     SDL_Window* (*CreateWindow)(const char *title,int width,int height,Uint32 flags);
     SDL_Renderer* (*CreateRender)(SDL_Window *win,int level,Uint32 flags);
     SDL_Texture* (*CreateTextureSurf)(SDL_Renderer *render,const char *name);
+    SDL_Texture* (*CreateTTFTexture)(SDL_Renderer *render,const char *ttf_font,int ptsize,SDL_Color color,const char *text);
     Flags flags;
 } WrapperSDL2;
+
+// Function
 
 SDL_Window *create_win(const char *title,int w,int h,Uint32 flags){
     SDL_WindowFlags f = flags;
@@ -89,6 +92,17 @@ SDL_Texture *create_texture_surf(SDL_Renderer *render,const char *name){
     SDL_FreeSurface(surf);
     return text;
 }
+
+SDL_Texture *create_ttf_texture(SDL_Renderer *render,const char *ttf_font,int ptsize,SDL_Color color,const char *text){
+    TTF_Font *font_render = TTF_OpenFont(ttf_font,ptsize);
+    SDL_Surface* login_page_surf = TTF_RenderText_Blended(font_render,text,color);
+    SDL_Texture* login_str_texture = SDL_CreateTextureFromSurface(render,login_page_surf);
+    SDL_FreeSurface(login_page_surf);
+    TTF_CloseFont(font_render);
+    return login_str_texture;
+}
+
+//END FUNC
 
 size_t write_data(void *ptr, size_t size, size_t nmemb, void *user) {
     size_t total_max = size * nmemb;
@@ -143,7 +157,7 @@ void *multithread(){
 }
 
 WrapperSDL2 InitWrapper(){
-  WrapperSDL2 win = {create_win,rendering};
+  WrapperSDL2 win = {create_win,rendering,create_texture_surf,create_ttf_texture};
   memset(&win.flags,0,sizeof(win.flags));
   return win;
 }
@@ -195,14 +209,11 @@ int main(){
     }
 
     //char *login_str = "Silahkan Login untuk memulai permainan";
-    TTF_Font *font_render = TTF_OpenFont("0xProtoNerdFont-Regular.ttf",24);
     SDL_Color white = {255, 255, 255, 255};  // putih
     SDL_Color red   = {255,   0,   0, 255};  // merah
     SDL_Color green = {  0, 255,   0, 255};  // hijau
     SDL_Color blue  = {  0,   0, 255, 255};  // biru
-    SDL_Surface* login_page_surf = TTF_RenderText_Blended(font_render,"Silahkan Login untuk memulai permainan",green);
-    SDL_Texture* login_str_texture = SDL_CreateTextureFromSurface(render,login_page_surf);
-    SDL_FreeSurface(login_page_surf);
+    SDL_Texture *login_str_texture = Wrapper.CreateTTFTexture(render,"0xProtoNerdFont-Regular.ttf",24,green,"Silahkan login/registrasi dahulu");
 
     //int size = 3;
     char *image_array[MAX_IMAGE_TEXT] = {"background.jpeg","background2.jpeg","waifu1.jpeg"};
@@ -296,6 +307,9 @@ int main(){
 	        if(e.key.keysym.sym == SDLK_6){
                 Wrapper.flags.flags_font = 5;
 	        }
+            if(e.key.keysym.sym == SDLK_l){
+                Wrapper.flags.flags_login_page = 1;
+            }
             }
         }
         SDL_RenderClear(render);
@@ -324,22 +338,13 @@ int main(){
 
             Vector2 gap_size = {50, 50};
             Vector2 block = { (width - 2 * gap_size.x), (height - 2 * gap_size.y) };
-
             SDL_Rect rect = { gap_size.x, gap_size.y, block.x, block.y };
-
-            // 1. Clear layar hitam
-            SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+            SDL_SetRenderDrawColor(render, 100, 100, 100, 255);
             SDL_RenderClear(render);
-
-            // 2. Gambar isi kotak abu-abu
             SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
             SDL_RenderFillRect(render, &rect);
-            
-            // 3. Gambar border hitam (SETELAH fill abu-abu)
             SDL_SetRenderDrawColor(render, 100, 100, 100, 255);
             SDL_RenderDrawRect(render, &rect);
-
-            // 4. Gambar teks hijau di atas kotak
             SDL_RenderCopy(render, login_str_texture, NULL, &pollin[0]);
             if (keyState[SDL_SCANCODE_K]) 
                 Wrapper.flags.flags_login_page = 2;
@@ -458,7 +463,7 @@ int main(){
         TTF_CloseFont(font[i]);
     }
     SDL_DestroyTexture(login_str_texture);
-    TTF_CloseFont(font_render);
+    //TTF_CloseFont(font_render);
     //pthread_join(tid,NULL);
     TTF_Quit();
     IMG_Quit();
