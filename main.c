@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include "request.h"
 
-#define MAX_TEXT_CENTER 5
+#define MAX_TEXT_CENTER 6
 #define MAX_IMAGE_TEXT 3
 
 #define MAX_BUFFER 4096
@@ -169,19 +169,40 @@ int main(){
     SDL_Texture *new_font[MAX_TEXT_CENTER];
     pthread_create(&tid,NULL,multithread,NULL);
     pthread_detach(tid);
-    char *str[MAX_TEXT_CENTER] = {"Click 'q' untuk keluar","ESC : Debug mode","Press 'h' to hide text"," ","Demonstrated of C power and PHP server side"};
+    char *str[MAX_TEXT_CENTER] = {"Silahkan Login untuk memulai permainan",
+                                    "Click 'q' untuk keluar",
+                                    "ESC : Debug mode",
+                                    "Press 'h' to hide text",
+                                    " ",
+                                    "Demonstrated of C power and PHP server side",
+                                };
     int ttf_max = sizeof(str)/sizeof(str[0]);
 
-    for(int i = 0;i < ttf_max;i++){
+    for(int i = 0;i < MAX_TEXT_CENTER;i++){
         pthread_mutex_lock(&futex);
         font[i] = TTF_OpenFont("0xProtoNerdFont-Regular.ttf",24);
         text_font[i] = TTF_RenderText_Blended(font[i],str[i],color);
+        text_font[i] = TTF_RenderText_Blended(font[i], str[i], color);
+        if (!text_font[i]) {
+            printf("TTF_RenderText_Blended failed at str[%d]: %s\n", i, TTF_GetError());
+            exit(1);
+        }
         font_vector[i].x =  text_font[i]->w;
         font_vector[i].y = text_font[i]->h;
         new_font[i] = SDL_CreateTextureFromSurface(render,text_font[i]);
         SDL_SetTextureAlphaMod(new_font[i],SDL_BLENDMODE_BLEND);
         pthread_mutex_unlock(&futex);
     }
+
+    //char *login_str = "Silahkan Login untuk memulai permainan";
+    TTF_Font *font_render = TTF_OpenFont("0xProtoNerdFont-Regular.ttf",24);
+    SDL_Color white = {255, 255, 255, 255};  // putih
+    SDL_Color red   = {255,   0,   0, 255};  // merah
+    SDL_Color green = {  0, 255,   0, 255};  // hijau
+    SDL_Color blue  = {  0,   0, 255, 255};  // biru
+    SDL_Surface* login_page_surf = TTF_RenderText_Blended(font_render,"Silahkan Login untuk memulai permainan",green);
+    SDL_Texture* login_str_texture = SDL_CreateTextureFromSurface(render,login_page_surf);
+    SDL_FreeSurface(login_page_surf);
 
     //int size = 3;
     char *image_array[MAX_IMAGE_TEXT] = {"background.jpeg","background2.jpeg","waifu1.jpeg"};
@@ -230,6 +251,7 @@ int main(){
     //SDL_Event event_main;
     SDL_Event e;
     while(Wrapper.flags.counter){
+        const Uint8 *keyState = SDL_GetKeyboardState(NULL);
         while(SDL_PollEvent(&e)){
             if(e.type == SDL_QUIT){
                 Wrapper.flags.counter = 0;
@@ -278,25 +300,55 @@ int main(){
         }
         SDL_RenderClear(render);
         SDL_SetRenderDrawColor(render,0,0,0,255);
+        int width_resource_render,heigth_resource_render;
+        SDL_GetRendererOutputSize(render,&width_resource_render,&heigth_resource_render);
+        //<--------REOURCE ROLLING--------------------
+        SDL_RenderSetLogicalSize(render,width_resource_render,heigth_resource_render);
+        for(int i = 0;i < sizeof(text)/sizeof(text[0]);i++){
+            SDL_SetTextureAlphaMod(text[i],Wrapper.flags.alpha);
+        }
+        for(int i = 0;i < ttf_max;i++){
+            SDL_SetTextureAlphaMod(new_font[i],Wrapper.flags.alpha);
+        }
+        //TTF
+        SDL_Rect pollin[MAX_TEXT_CENTER];
+        for(int i = 0;i < ttf_max;i++){
+            Vector2 vector = {.x = (width_resource_render - font_vector[i].x)/2,.y = (heigth_resource_render - font_vector[i].y)/2};
+            SDL_Rect rectangle = {vector.x,vector.y,font_vector[i].x,font_vector[i].y};
+            pollin[i] = rectangle;
+        }
         //<--------REGION BLOCK PAGE------------------
-        if(Wrapper.flags.flags_login_page == 1)
-        {
-            const Uint8* keyState = SDL_GetKeyboardState(NULL);
-            int width,heigth;
-            SDL_GetWindowSize(win,&width,&heigth);
-            Vector2 win_size = {(width - 100) / 2,(heigth - 100) / 2};
-            SDL_Rect rect = {win_size.x,win_size.y,100,100};
-            SDL_RenderFillRect(render,&rect);
-            if(keyState[SDL_SCANCODE_K]) Wrapper.flags.flags_login_page = 2;
-            SDL_SetRenderDrawColor(render,100,100,100,255);
+        if (Wrapper.flags.flags_login_page == 1) {
+            int width, height;
+            SDL_GetWindowSize(win, &width, &height);
+
+            Vector2 gap_size = {50, 50};
+            Vector2 block = { (width - 2 * gap_size.x), (height - 2 * gap_size.y) };
+
+            SDL_Rect rect = { gap_size.x, gap_size.y, block.x, block.y };
+
+            // 1. Clear layar hitam
+            SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+            SDL_RenderClear(render);
+
+            // 2. Gambar isi kotak abu-abu
+            SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+            SDL_RenderFillRect(render, &rect);
+            
+            // 3. Gambar border hitam (SETELAH fill abu-abu)
+            SDL_SetRenderDrawColor(render, 100, 100, 100, 255);
+            SDL_RenderDrawRect(render, &rect);
+
+            // 4. Gambar teks hijau di atas kotak
+            SDL_RenderCopy(render, login_str_texture, NULL, &pollin[0]);
+            if (keyState[SDL_SCANCODE_K]) 
+                Wrapper.flags.flags_login_page = 2;
         }
         //---------END REGION BLOCK PAGE--------------
         if(Wrapper.flags.flags_login_page == 2){
-        const Uint8 *keyState = SDL_GetKeyboardState(NULL);
-        //SDL_RenderClear(render);
+        //const Uint8 *keyState = SDL_GetKeyboardState(NULL);
         int win_w,win_h;
         SDL_GetWindowSize(win,&win_w,&win_h);
-        //if(keyState[SDL_SCANCODE_UP]) dst.y -= speed;
         if(keyState[SDL_SCANCODE_DOWN]) dst.y += speed;
         if(keyState[SDL_SCANCODE_RIGHT]) dst.x += speed;
         if(keyState[SDL_SCANCODE_LEFT]) dst.x -= speed;
@@ -351,12 +403,6 @@ int main(){
         //SDL_SetRenderDrawColor(render,0,0,0,255);
         int width,height;
         SDL_GetWindowSize(win,&width,&height);
-        SDL_Rect pollin[MAX_TEXT_CENTER];
-        for(int i = 0;i < ttf_max;i++){
-            Vector2 vector = {.x = (width - font_vector[i].x)/2,.y = (height - font_vector[i].y)/2};
-            SDL_Rect rectangle = {vector.x,vector.y,font_vector[i].x,font_vector[i].y};
-            pollin[i] = rectangle;
-        }
         int rend_w,rend_h;
         SDL_RenderGetLogicalSize(render,&rend_w,&rend_h);
         //Vector2 barrier = {(width),(height + win_h)};
@@ -365,13 +411,6 @@ int main(){
         if (SDL_HasIntersection(&dst, &barrier)) {
             dst.y = barrier.y - dst.h; // biar tepat di atas lantai
             velocity = 0;
-        }
-        SDL_RenderSetLogicalSize(render,width,height);
-        for(int i = 0;i < sizeof(text)/sizeof(text[0]);i++){
-            SDL_SetTextureAlphaMod(text[i],Wrapper.flags.alpha);
-        }
-        for(int i = 0;i < ttf_max;i++){
-            SDL_SetTextureAlphaMod(new_font[i],Wrapper.flags.alpha);
         }
         switch(Wrapper.flags.flags_image){
             case 1:
@@ -386,19 +425,19 @@ int main(){
         SDL_RenderCopy(render,text[2],NULL,&dst);// Assets bukan background
         switch(Wrapper.flags.flags_font){
             case 1:
-                SDL_RenderCopy(render,new_font[0],NULL,&pollin[0]);
-                break;
-            case 2:
                 SDL_RenderCopy(render,new_font[1],NULL,&pollin[1]);
                 break;
-            case 3:
+            case 2:
                 SDL_RenderCopy(render,new_font[2],NULL,&pollin[2]);
                 break;
-            case 4:
+            case 3:
                 SDL_RenderCopy(render,new_font[3],NULL,&pollin[3]);
                 break;
+            case 4:
+                SDL_RenderCopy(render,new_font[4],NULL,&pollin[4]);
+                break;
 	        case 5:
-	            SDL_RenderCopy(render,new_font[4],NULL,&pollin[4]);
+	            SDL_RenderCopy(render,new_font[5],NULL,&pollin[5]);
 		        break;
             default:
             break;
@@ -418,6 +457,7 @@ int main(){
         SDL_DestroyTexture(new_font[i]);
         TTF_CloseFont(font[i]);
     }
+    SDL_DestroyTexture(login_str_texture);
     //pthread_join(tid,NULL);
     TTF_Quit();
     IMG_Quit();
