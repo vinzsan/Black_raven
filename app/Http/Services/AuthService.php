@@ -16,10 +16,7 @@ class AuthService
     {
         $validated = $request->validated();
 
-        $user = User::create([
-            'username' => $validated['username'],
-            'password' => Hash::make($validated['password']),
-        ]);
+        $user = User::create($validated);
 
         return (object) [
             'user' => $user,
