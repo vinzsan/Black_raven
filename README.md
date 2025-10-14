@@ -12,33 +12,4 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework"alt="License"></a>
 </p>
 
-# 🛠️ Alca Torda — Game Sederhana Terinspirasi dari Terraria
-
-PixelCraft adalah game 2D pixel sandbox sederhana yang terinspirasi dari *Terraria*, dibangun menggunakan **SDL2** untuk frontend gamenya dan **Laravel PHP** sebagai backend API. Game ini mendukung fitur seperti:
-
-- Gerakan karakter 2D, lompat, dan mining
-- World dengan sistem blok sederhana (dapat disimpan)
-- Login dan penyimpanan data pemain (via Laravel API)
-- Leaderboard dan sistem online sederhana
-
----
-
-## 🎮 Fitur Game (SDL2 + C)
-- Grafis 2D dengan tile-based map
-- Karakter bergerak dan animasi frame sprite
-- Sistem blok: tempatkan & hancurkan
-- UI dasar: health bar, hotbar
-- Sistem save/load world dari file atau API
-
----
-
-## 🌐 Backend (Laravel API)
-Backend Laravel menangani:
-- **Registrasi & Login pengguna**
-- **Penyimpanan world per user**
-- **Leaderboard skor global**
-- **Penyimpanan progress dan statistik player**
-
----
-
-## 🧩 Struktur Proyek
+## I need boifriend :3
